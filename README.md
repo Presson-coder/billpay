@@ -122,7 +122,8 @@ curl -i -X POST http://localhost:8080/api/v1/callbacks/biller \
 
 ```
 controller/   HTTP only: PaymentController, BillerCallbackController
-service/      Business rules: PaymentService (create, duplicate check, outcome, callback)
+service/      Business rules: PaymentService interface (create, get, callback) and PaymentResult
+service/impl/ PaymentServiceImpl (duplicate check, gateway call, outcome, callback)
 gateway/      Biller integration: provided gateway + GatewayClient (timeout wrapper)
 model/        Payment entity and PaymentStatus
 repository/   Spring Data JPA repository
