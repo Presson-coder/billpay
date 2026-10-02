@@ -37,3 +37,10 @@ billpay:
     timeout: 3s
     pool-size: 10
     queue-capacity: 50
+
+# OpenAPI spec at /v3/api-docs, Swagger UI at /swagger-ui.html
+springdoc:
+  # Document only the responses declared on each endpoint, not every advice handler
+  override-with-generic-response: false
+  swagger-ui:
+    operations-sorter: method

@@ -17,6 +17,8 @@ The service starts on `http://localhost:8080`. The H2 console is at `http://loca
 
 Health check: `http://localhost:8080/actuator/health`.
 
+API docs: Swagger UI at `http://localhost:8080/swagger-ui.html`, and the OpenAPI spec at `http://localhost:8080/v3/api-docs`. To turn them off (for example in production), set `SPRINGDOC_API_DOCS_ENABLED=false` and `SPRINGDOC_SWAGGER_UI_ENABLED=false`.
+
 ### With Docker
 
 ```bash
@@ -209,4 +211,4 @@ In production the callback endpoint must reject fake callbacks. I would use thes
 - A scheduled job that re-queries the biller for payments stuck in `PENDING`, so they settle without a callback or a person.
 - Retries with backoff for calls that never reached the biller.
 - A persistent database (RDS PostgreSQL) for the AWS deployment, and infrastructure as code for the AWS resources.
-- OpenAPI/Swagger docs, metrics on gateway latency and timeouts.
+- Metrics on gateway latency and timeouts.
