@@ -66,7 +66,7 @@ public class Payment {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    /** stops a late gateway result and a biller callback overwriting each other. */
+    /** stops a late gateway result and a biller callback from overwriting each other. */
     @Version
     @Column(name = "version")
     private Long version;
