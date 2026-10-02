@@ -18,12 +18,11 @@ import jakarta.persistence.Version;
 
 /**
  * A bill payment as stored in the database.
- * State changes go through the mark* methods so a final payment can never be changed again.
+ * State changes go through the mark* methods so a final payment can never be
+ * changed again.
  */
 @Entity
-@Table(name = "payments",
-        uniqueConstraints = @UniqueConstraint(name = "uk_payments_client_reference",
-                columnNames = "client_reference"))
+@Table(name = "payments", uniqueConstraints = @UniqueConstraint(name = "uk_payments_client_reference", columnNames = "client_reference"))
 public class Payment {
 
     private static final String AWAITING_BILLER = "Awaiting biller response";
@@ -66,7 +65,10 @@ public class Payment {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    /** stops a late gateway result and a biller callback from overwriting each other. */
+    /**
+     * stops a late gateway result and a biller callback from overwriting each
+     * other.
+     */
     @Version
     @Column(name = "version")
     private Long version;
@@ -76,7 +78,7 @@ public class Payment {
     }
 
     public static Payment initiate(String clientReference, String billerCode, String accountNumber,
-                                   BigDecimal amount, String currency, String customerMsisdn) {
+            BigDecimal amount, String currency, String customerMsisdn) {
         Payment payment = new Payment();
         payment.paymentId = UUID.randomUUID().toString();
         payment.clientReference = clientReference;
@@ -103,7 +105,10 @@ public class Payment {
         this.statusMessage = reason;
     }
 
-    /** Outcome unknown: stay PENDING so the payment is confirmed later, never failed blindly. */
+    /**
+     * Outcome unknown: stay PENDING so the payment is confirmed later, never failed
+     * blindly.
+     */
     public void markPending(String reason) {
         requireNotFinal();
         this.status = PaymentStatus.PENDING;
