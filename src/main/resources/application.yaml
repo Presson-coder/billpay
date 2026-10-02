@@ -20,6 +20,17 @@ spring:
       include-stacktrace: never
       include-message: never
 
+# Expose only the health endpoint (used by Docker and the AWS load balancer)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
 # Biller gateway: never wait longer than 3 seconds for an answer
 billpay:
   gateway:

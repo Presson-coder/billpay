@@ -1,0 +1,12 @@
+services:
+  billpay:
+    build: .
+    image: billpay:local
+    container_name: billpay
+    ports:
+      - "8080:8080"
+    environment:
+      # Override any application.yaml setting here, e.g. the gateway timeout
+      BILLPAY_GATEWAY_TIMEOUT: 3s
+      JAVA_OPTS: "-XX:MaxRAMPercentage=75.0"
+    restart: unless-stopped

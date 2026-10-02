@@ -15,6 +15,51 @@ mvn spring-boot:run        # or: java -jar target/billpay-0.0.1-SNAPSHOT.jar
 
 The service starts on `http://localhost:8080`. The H2 console is at `http://localhost:8080/h2-console` (JDBC URL `jdbc:h2:mem:billpay`, user `sa`, no password). Data is lost on restart.
 
+Health check: `http://localhost:8080/actuator/health`.
+
+### With Docker
+
+```bash
+docker compose up --build    # builds the image and starts the service on port 8080
+docker compose down
+```
+
+The image is a multi-stage build: Maven builds the jar, and the runtime image is a slim JRE 21 running as a non-root user.
+
+## Deployment (AWS ECS Fargate)
+
+`.github/workflows/ci-cd.yml` runs on GitHub Actions:
+
+| Trigger | What runs |
+|---|---|
+| Pull request | Build and tests, then a Docker build check (no push) |
+| Push to `main` | Build and tests, then build the image, push it to ECR, and deploy it to ECS. The job waits until the service is stable |
+
+The deploy job signs in to AWS through GitHub OIDC, so no AWS access keys are stored in GitHub. The task definition is in `.aws/task-definition.json`.
+
+### One-time AWS setup
+
+Create these once, by hand or with Terraform/CloudFormation:
+
+1. **ECR repository** `billpay`.
+2. **ECS cluster** `billpay-cluster` (Fargate).
+3. **Task execution role** `billpayTaskExecutionRole`, with the `AmazonECSTaskExecutionRolePolicy` managed policy plus `logs:CreateLogGroup`.
+4. **ECS service** `billpay-service`, running the `billpay` task definition behind an Application Load Balancer. Point the target group health check at `/actuator/health` on port 8080. Use **1 task** for now (see the note below).
+5. **GitHub OIDC deploy role.** Add `token.actions.githubusercontent.com` as an IAM identity provider. Create a role that trusts `repo:Presson-coder/billpay:environment:production` and has permission to push to ECR, register task definitions, update the service, and `iam:PassRole` on the execution role.
+
+### GitHub settings
+
+Create an environment called `production`. You can add required reviewers to it as an approval gate. Then set:
+
+| Kind | Name | Example |
+|---|---|---|
+| Secret | `AWS_DEPLOY_ROLE_ARN` | `arn:aws:iam::123456789012:role/github-billpay-deploy` |
+| Variable | `AWS_ACCOUNT_ID` | `123456789012` |
+| Variable | `AWS_REGION` | `af-south-1` |
+| Variable (optional) | `ECR_REPOSITORY`, `ECS_CLUSTER`, `ECS_SERVICE` | defaults: `billpay`, `billpay-cluster`, `billpay-service` |
+
+> **Note:** The database is still in-memory H2. In AWS each task has its own copy, and the data is lost on every deploy. Before running more than one task, or keeping real payments, move to a shared database such as RDS PostgreSQL.
+
 ## Running the tests
 
 ```bash
@@ -163,4 +208,5 @@ In production the callback endpoint must reject fake callbacks. I would use thes
 - Callback authentication (described above).
 - A scheduled job that re-queries the biller for payments stuck in `PENDING`, so they settle without a callback or a person.
 - Retries with backoff for calls that never reached the biller.
-- OpenAPI/Swagger docs, Docker image, metrics on gateway latency and timeouts.
+- A persistent database (RDS PostgreSQL) for the AWS deployment, and infrastructure as code for the AWS resources.
+- OpenAPI/Swagger docs, metrics on gateway latency and timeouts.
